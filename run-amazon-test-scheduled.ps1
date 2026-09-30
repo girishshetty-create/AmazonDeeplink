@@ -10,4 +10,9 @@ if (-not (Test-Path $logDir)) {
 $timestamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 $logFile = Join-Path $logDir "run-$timestamp.log"
 
-& npx playwright test tests/amazoninks.spec.ts --reporter=list *> $logFile
+$testResultsDir = Join-Path $repo 'test-results'
+if (Test-Path $testResultsDir) {
+    Remove-Item -Recurse -Force $testResultsDir -ErrorAction SilentlyContinue
+}
+
+& npx playwright test tests/amazoninks.spec.ts --reporter=list *>&1 | Out-File -FilePath $logFile -Encoding utf8
