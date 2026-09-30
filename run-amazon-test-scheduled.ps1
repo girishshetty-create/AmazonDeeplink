@@ -23,11 +23,17 @@ if (Test-Path $credFile) {
     . $credFile   # defines $MailFrom and $MailAppPassword
 
     $status = if ($testExitCode -eq 0) { 'PASS' } else { 'FAIL' }
+    $linkSummary = (Select-String -Path $logFile -Pattern '^(PASS|FAIL):' -ErrorAction SilentlyContinue | ForEach-Object { $_.Line }) -join "`n"
+    if (-not $linkSummary) { $linkSummary = '(no per-link results captured)' }
+
     $subject = "Amazon Deeplink Test - $status"
     $body = @"
 Scheduled Amazon Deeplink test (local Windows Task Scheduler) finished with status: $status
 Time: $timestamp
 Log file: $logFile
+
+Per-link results:
+$linkSummary
 "@
 
     try {

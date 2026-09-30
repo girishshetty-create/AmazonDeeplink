@@ -11,23 +11,35 @@ test('Verify all Amazon product links', async ({ page }) => {
     'https://www.amazon.com/dp/B0GV37M678?th='
   ];
 
+  const failures: string[] = [];
+
   for (const url of links) {
 
     console.log(`Checking: ${url}`);
 
-    await page.goto(url, {
-      waitUntil: 'domcontentloaded',
-      timeout: 60000
-    });
+    try {
+      await page.goto(url, {
+        waitUntil: 'domcontentloaded',
+        timeout: 60000
+      });
 
-    console.log(`Current URL: ${page.url()}`);
+      console.log(`Current URL: ${page.url()}`);
 
-    await expect(page).toHaveTitle(/Amazon/i);
+      await expect(page).toHaveTitle(/Amazon/i);
 
-    await expect(page.locator('span#productTitle')).toBeVisible({
-      timeout: 30000
-    });
+      await expect(page.locator('span#productTitle')).toBeVisible({
+        timeout: 30000
+      });
 
-    console.log(`PASS: ${url}`);
+      console.log(`PASS: ${url}`);
+    } catch (err) {
+      const reason = (err as Error).message.split('\n')[0];
+      console.log(`FAIL: ${url} — ${reason}`);
+      failures.push(`${url}: ${reason}`);
+    }
+  }
+
+  if (failures.length > 0) {
+    throw new Error(`${failures.length}/${links.length} link(s) failed:\n` + failures.join('\n'));
   }
 });
